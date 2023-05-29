@@ -1,0 +1,22 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = require('express');
+const dotenv = require('dotenv');
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+// Load variables from .env into memory
+dotenv.config();
+const app = express();
+const port = process.env.PORT;
+const options = {
+    key: fs.readFileSync('./certs/selfsigned.key'),
+    cert: fs.readFileSync("./certs/selfsigned.crt")
+};
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(options, app);
+httpServer.listen(8080);
+httpsServer.listen(3001);
+app.get('/', (req, res) => {
+    res.send('Hyphx Break The Ice API');
+});
