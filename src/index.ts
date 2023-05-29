@@ -20,8 +20,12 @@ const options = {
 var httpServer = http.createServer(app);
 // var httpsServer = https.createServer(options, app);
 
-httpServer.listen(Number(process.env.PORT) + 1);
+// httpServer.listen(Number(process.env.PORT) + 1);
 // httpsServer.listen(process.env.PORT);
+
+app.listen(port)
+
+
 
 app.get('/', (req: Request, res: Response) => {
     res.send('Hyphx Skit App API');
