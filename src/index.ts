@@ -1,11 +1,12 @@
 import { Express, Request, Response } from 'express';
+
+//Utils
 import { startSever } from './utils/startserver';
+import { sendReponse } from './utils/sendresponse';
 
 const express = require('express');
 const dotenv = require('dotenv');
-const fs = require('fs')
 const app: Express = express();
-
 
 // Load variables from .env into memory
 dotenv.config();
@@ -13,12 +14,10 @@ dotenv.config();
 const port = process.env.PORT;
 const environment = process.env.ENVIRONMENT;
 
-
 startSever(port, environment, app)
 
-
 app.get('/', (req: Request, res: Response) => {
-    res.send('Hyphx Skit App API');
+    sendReponse.forbidden(res)
 });
 
 
