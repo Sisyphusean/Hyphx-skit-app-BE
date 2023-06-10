@@ -33,9 +33,13 @@ app.use(express.json());
 startSever(port, environment, app)
 
 app.get('/test', async (req: Request, res: Response) => {
-    const client = await getClient(dbUri)
-    let retrievedDBs = await listDatabases(client)
-    sendReponse.success(res, retrievedDBs)
+    try {
+        const client = await getClient(dbUri)
+        let retrievedDBs = await listDatabases(client)
+        sendReponse.success(res, retrievedDBs)
+    } catch (e) {
+        console.error(e)
+    }
     // closeConn(client)
 })
 
