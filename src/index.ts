@@ -36,7 +36,7 @@ app.get('/test', async (req: Request, res: Response) => {
     const client = await getClient(dbUri)
     let retrievedDBs = await listDatabases(client)
     sendReponse.success(res, retrievedDBs)
-    closeConn(client)
+    // closeConn(client)
 })
 
 
