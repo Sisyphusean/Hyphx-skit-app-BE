@@ -7,7 +7,15 @@ const mongoClient = require('mongodb').MongoClient;
 
 
 export async function getClient(uri: string) {
-    const client = new mongoClient(uri, { useNewUrlParser: true }) as MongoClient;
+
+    //Proxy for mongoClient.connect
+    const options = {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    }
+
+
+    const client = new mongoClient(uri, options) as MongoClient;
     let conn = await client.connect()
     return conn
 }
