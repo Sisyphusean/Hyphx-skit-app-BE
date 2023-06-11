@@ -74,6 +74,19 @@ export const sendReponse = {
         return res.status(status).json(response);
     },
 
+    notFound: (
+        res: Response,
+        message: string = "Resource not Found",
+        status: responseTypes["notFound"] = 404) => {
+
+        const response = {
+            status,
+            message
+        };
+
+        return res.status(status).json(response);
+    },
+
     /**
     * This function is used to send an internal error with the status code of 500 to the client
     * @param res This is the response object used to send the message

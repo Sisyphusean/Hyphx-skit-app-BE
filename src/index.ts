@@ -46,9 +46,13 @@ app.get('/test',
         }
     })
 
-
 app.get('/', (req: Request, res: Response) => {
     sendReponse.success(res, "Success")
+});
+
+//404
+app.use((req: Request, res: Response) => {
+    sendReponse.notFound(res, "Not Found")
 });
 
 
