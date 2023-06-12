@@ -59,9 +59,25 @@ export const verifyUser = () => {
         }))
 }
 
-// export const verifyJWT = () => {
-//     passport.use(new JwtStrategy(jwtOptions, (payload, done) => {
+export const verifyJWT = () => {
+    passport.use(new JwtStrategy(jwtOptions, async (payload: any, cb: Function) => {
 
+        try {
+            const db = (await getClient(process.env.MONGO_DB_URI as string)).collection(process.env.DB_MOD_COLLECTION as string)
+            let user = await db.findOne({ username: payload.username }) as userDocument
 
-//     }))
-// }
+            if (!user) {
+                return cb(null, false, { message: "User not found" })
+            }
+
+            if (user) {
+                console.log("User's token is valid")
+                return cb(null, user)
+            }
+
+        } catch (e) {
+            console.error("Failed to verify JWT")
+            cb(e, false, { message: "Failed to verify JWT" })
+        }
+    }))
+}
