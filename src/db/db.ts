@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const mongoClient = require('mongodb').MongoClient;
+const dbName = process.env.DB_NAME
 
 const proxySettings = {
     username: process.env.PROXY_USERNAME,
@@ -13,6 +14,9 @@ const proxySettings = {
     host: process.env.PROXY_HOST,
     port: process.env.PROXY_PORT
 }
+
+var db;
+var client: MongoClient;
 
 export async function getClient(uri: string) {
 
@@ -23,16 +27,17 @@ export async function getClient(uri: string) {
         proxyPassword: proxySettings.password,
         proxyUsername: proxySettings.username
     }
-    let client;
 
+    //Configure db according to environment due to need for proxy
     if (process.env.ENVIRONMENT === "development") {
         client = new mongoClient(uri) as MongoClient;
     } else {
         client = new mongoClient(uri, options) as MongoClient;
     }
 
-    let conn = await client.connect()
-    return conn
+    let clientHandle = await client.connect()
+    db = clientHandle.db(dbName)
+    return db
 
 }
 
@@ -46,7 +51,7 @@ export async function listDatabases(client: MongoClient | undefined) {
 
 }
 
-export async function closeConn(client: MongoClient) {
+export async function closeConn() {
     try {
         await client.close();
     } catch (e) {

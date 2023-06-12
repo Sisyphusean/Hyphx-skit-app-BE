@@ -10,22 +10,35 @@ import { devCorsSetup, prodAndStagingCorsSetup } from './constants/cors';
 
 //DB Connection
 import { closeConn, getClient, listDatabases } from './db/db';
+import { log } from 'console';
 
+//Passport
+import { verifyUser } from './passport/passport';
+import passport from 'passport';
+var LocalStrategy = require('passport-local');
 
+// Register the 'local' strategy with Passport
+passport.use(new LocalStrategy(verifyUser));
 
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors')
 const app: Express = express();
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const morgan = require('morgan');
+const loginRouter = require('./routes/login');
 
 // Load variables from .env into memory
 dotenv.config();
 
 const port = process.env.PORT;
 const environment = process.env.ENVIRONMENT;
-const dbUri = process.env.MONGO_DB_URI as string;
 
+// Initialize and use Passport middleware
+app.use(passport.initialize());
+
+
+//add morgan to log HTTP requests
+app.use(morgan('combined'));
 
 //Instantiate cors
 app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
@@ -35,16 +48,7 @@ app.use(express.json());
 
 startSever(port, environment, app)
 
-app.get('/test',
-    async (req: Request, res: Response) => {
-        try {
-            const client = await getClient(dbUri)
-            let retrievedDBs = await listDatabases(client)
-            retrievedDBs ? sendReponse.success(res, retrievedDBs) : null
-        } catch (e) {
-            console.error(e)
-        }
-    })
+app.use('/login', loginRouter);
 
 app.get('/', (req: Request, res: Response) => {
     sendReponse.success(res, "Success")
