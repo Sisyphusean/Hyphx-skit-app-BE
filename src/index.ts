@@ -38,7 +38,7 @@ app.use(passport.initialize());
 
 
 //add morgan to log HTTP requests
-app.use(morgan('combined'));
+app.use(morgan('dev'));
 
 //Instantiate cors
 app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
