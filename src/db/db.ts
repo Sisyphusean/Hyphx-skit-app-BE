@@ -29,11 +29,13 @@ export async function getClient(uri: string) {
     }
 
     //Configure db according to environment due to need for proxy
-    if (process.env.ENVIRONMENT === "development") {
-        client = new mongoClient(uri) as MongoClient;
-    } else {
-        client = new mongoClient(uri, options) as MongoClient;
-    }
+    // if (process.env.ENVIRONMENT === "development") {
+    //     client = new mongoClient(uri) as MongoClient;
+    // } else {
+    //     client = new mongoClient(uri, options) as MongoClient;
+    // }
+
+    client = new mongoClient(uri) as MongoClient;
 
     let clientHandle = await client.connect()
     db = clientHandle.db(dbName)
