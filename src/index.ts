@@ -43,6 +43,8 @@ app.use(morgan('dev'));
 //Instantiate cors
 app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
 
+console.log("Environment: " + environment)
+
 //Add JSON to Body
 app.use(express.json());
 
