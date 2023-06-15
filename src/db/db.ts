@@ -15,8 +15,14 @@ const proxySettings = {
     port: process.env.PROXY_PORT
 }
 
-var db;
+var collection;
 var client: MongoClient;
+
+/**
+ * 
+ * @param uri 
+ * @returns 
+ */
 
 export async function getClient(uri: string) {
 
@@ -38,8 +44,8 @@ export async function getClient(uri: string) {
     client = new mongoClient(uri) as MongoClient;
 
     let clientHandle = await client.connect()
-    db = clientHandle.db(dbName)
-    return db
+    collection = clientHandle.db(dbName)
+    return { client, collection }
 
 }
 

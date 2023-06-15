@@ -49,7 +49,7 @@ loginRouter.post('/password', (req: Request, res: Response, next) => {
         })(req, res, next);
 })
 
-loginRouter.post('/jwtverification', (req: Request, res: Response, next) => {
+loginRouter.get('/jwtverification', (req: Request, res: Response, next) => {
     passport.authenticate('jwt', { session: false },
         (error: Error | null, user: userDocument, info: { message: string }) => {
 

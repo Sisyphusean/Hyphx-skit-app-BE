@@ -32,8 +32,11 @@ export const verifyUser = () => {
         async function verify(username: string, password: string, cb: Function) {
             try {
                 console.log("Running verify function")
-                const db = (await getClient(process.env.MONGO_DB_URI as string)).collection(process.env.DB_MOD_COLLECTION as string)
+                const { client, collection } = (await getClient(process.env.MONGO_DB_URI as string))
+                const db = collection.collection(process.env.DB_MOD_COLLECTION as string)
                 let user = await db.findOne({ username: username }) as userDocument
+
+                await client.close()
 
                 if (!user) {
                     return cb(null, false, { message: "User not found" })
@@ -63,8 +66,12 @@ export const verifyJWT = () => {
     passport.use(new JwtStrategy(jwtOptions, async (payload: any, cb: Function) => {
 
         try {
-            const db = (await getClient(process.env.MONGO_DB_URI as string)).collection(process.env.DB_MOD_COLLECTION as string)
+            const { client, collection } = (await getClient(process.env.MONGO_DB_URI as string))
+
+            let db = collection.collection(process.env.DB_MOD_COLLECTION as string)
             let user = await db.findOne({ username: payload.username }) as userDocument
+
+            await client.close()
 
             if (!user) {
                 return cb(null, false, { message: "User not found" })
