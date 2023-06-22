@@ -3,23 +3,24 @@ import { Express, Request, Response } from 'express';
 //Utils
 import { startSever } from './utils/startserver';
 import { sendReponse } from './utils/sendresponse';
-import { consoleLog } from "./utils/consolelog";
 
 //Constants
 import { devCorsSetup, prodAndStagingCorsSetup } from './constants/cors';
-
-//DB Connection
-import { closeConn, getClient, listDatabases } from './db/db';
-import { log } from 'console';
+import { firebaseConfig } from './constants/firebaseconfig';
 
 //Passport
 import { verifyUser } from './passport/passport';
 import passport from 'passport';
 var LocalStrategy = require('passport-local');
 
+//Firebase
+import * as admin from 'firebase-admin';
+
 // Register the 'local' strategy with Passport
 passport.use(new LocalStrategy(verifyUser));
 
+// Initialize Firebase
+admin.initializeApp(firebaseConfig);
 const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors')
