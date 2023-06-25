@@ -64,8 +64,6 @@ export const verifyUser = () => {
                         })
                     }
                 })
-
-                terminateFirebase()
             } catch (e) {
                 console.error("Failed to get DB")
                 return cb(e, false, { message: "Failed to get DB" })
