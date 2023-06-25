@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 
 //Utils
-import { sendReponse } from '../utils/sendresponse';
+import { sendResponse } from '../utils/sendresponse';
 
 //Passport
 import { verifyUser, verifyJWT } from '../passport/passport';
@@ -27,24 +27,24 @@ const loginRouter = express.Router();
 
 loginRouter.post('/password', (req: Request, res: Response, next) => {
     passport.authenticate('local', { session: false },
-        (error: Error | null, user: userDocument, info: { message: string }) => {
+        (error: Error | null, user: any, info: { message: string }) => {
 
             if (error) {
                 return next(error)
             }
 
             if (!user) {
-                sendReponse.badRequest(res, "Failed to verify user", 400)
+                sendResponse.badRequest(res, "Failed to verify user", 400)
             }
 
             if (user) {
                 const token = generateToken(user as userDocument)
                 const data = {
-                    id: user._id,
+                    // id: user._id,
                     username: user.username,
                     token: token
                 }
-                sendReponse.success(res, "User successfully authenticated", 200, { ...data })
+                sendResponse.success(res, "User successfully authenticated", 200, { ...data })
             }
         })(req, res, next);
 })
@@ -58,11 +58,11 @@ loginRouter.get('/jwtverification', (req: Request, res: Response, next) => {
             }
 
             if (!user) {
-                sendReponse.badRequest(res, "JWT is invalid, please login again", 400)
+                sendResponse.badRequest(res, "JWT is invalid, please login again", 400)
             }
 
             if (user) {
-                sendReponse.success(res, "JWT is valid")
+                sendResponse.success(res, "JWT is valid")
             }
         }
     )(req, res, next)

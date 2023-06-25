@@ -1,42 +1,64 @@
-import { Express, Request, Response } from 'express';
+//Dotenv
+import dotenv from 'dotenv';
+
+// Load variables from .env into memory
+dotenv.config();
+
+//Firebase Admin
+import * as admin from 'firebase-admin';
+
+//import firebaseConfig
+import { firebaseConfig } from './constants/firebaseconfig';
+
+//Initialize Firebase
+admin.initializeApp({
+    credential: admin.credential.cert({
+        projectId: firebaseConfig.project_id,
+        clientEmail: firebaseConfig.client_email,
+        privateKey: firebaseConfig.private_key
+    }),
+    databaseURL: `https://${firebaseConfig.project_id}.firebaseio.com`
+});
+
+//Express
+import { Express, Request, Response, NextFunction } from 'express';
+
+//Types
+import { HttpError } from 'http-errors';
+
+//JSON Handler
+import bodyParser from 'body-parser';
 
 //Utils
 import { startSever } from './utils/startserver';
-import { sendReponse } from './utils/sendresponse';
+import { sendResponse } from './utils/sendresponse'
 
 //Constants
 import { devCorsSetup, prodAndStagingCorsSetup } from './constants/cors';
-import { firebaseConfig } from './constants/firebaseconfig';
+
+//Routes
+import { adminRouter } from './routes/admin';
 
 //Passport
 import { verifyUser } from './passport/passport';
 import passport from 'passport';
 var LocalStrategy = require('passport-local');
 
-//Firebase
-import * as admin from 'firebase-admin';
-
 // Register the 'local' strategy with Passport
 passport.use(new LocalStrategy(verifyUser));
 
-// Initialize Firebase
-admin.initializeApp(firebaseConfig);
-const dotenv = require('dotenv');
 const express = require('express');
 const cors = require('cors')
 const app: Express = express();
 const morgan = require('morgan');
 const loginRouter = require('./routes/login');
 
-// Load variables from .env into memory
-dotenv.config();
 
 const port = process.env.PORT;
 const environment = process.env.ENVIRONMENT;
 
 // Initialize and use Passport middleware
 app.use(passport.initialize());
-
 
 //add morgan to log HTTP requests
 app.use(morgan('dev'));
@@ -47,19 +69,29 @@ app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSe
 console.log("Environment: " + environment)
 
 //Add JSON to Body
-app.use(express.json());
+app.use(bodyParser.json({ strict: true }));
+
+//Handle Malformed JSONs
+app.use(function (err: HttpError, req: Request, res: Response, next: NextFunction) {
+    if (err instanceof SyntaxError && err.statusCode === 400 && 'body' in err) {
+        sendResponse.badRequest(res, "Invalid JSON format", 400)
+    } else {
+        next();
+    }
+});
 
 startSever(port, environment, app)
 
 app.use('/login', loginRouter);
+app.use('/admin', adminRouter)
 
 app.get('/', (req: Request, res: Response) => {
-    sendReponse.success(res, "Success")
+    sendResponse.success(res, "Success")
 });
 
 //404
 app.use((req: Request, res: Response) => {
-    sendReponse.notFound(res, "Not Found")
+    sendResponse.notFound(res, "Not Found")
 });
 
 

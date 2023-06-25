@@ -10,6 +10,9 @@ import { comparePassword } from '../utils/cryptoHash';
 //Interfaces
 import { userDocument } from '../interfaces/interface';
 
+//Firebase
+import { db as firebaseDB, terminateFirebase, querySnapshot } from '../db/firestore';
+
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const jwt = require('jsonwebtoken');
@@ -26,35 +29,43 @@ const jwtOptions = {
 }
 
 export const verifyUser = () => {
-    console.log("Verifying user")
 
     passport.use(new LocalStrategy(
-        async function verify(username: string, password: string, cb: Function) {
+        async function verify(username: string, enteredPassword: string, cb: Function) {
             try {
                 console.log("Running verify function")
-                const { client, collection } = (await getClient(process.env.MONGO_DB_URI as string))
-                const db = collection.collection(process.env.DB_MOD_COLLECTION as string)
-                let user = await db.findOne({ username: username }) as userDocument
+                const modCollectionRef = firebaseDB.collection(process.env.DB_MOD_COLLECTION as string)
+                let query = await modCollectionRef.where('username', '==', username).limit(1)
 
-                await client.close()
+                query.get().then(async (querySnapshot: querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        return cb(null, false, { message: "User does not exist" })
+                    } else {
+                        querySnapshot.forEach(async (doc) => {
+                            if (doc.exists) {
+                                const { username, password } = doc.data()
+                                const user = { username, password }
+                                let doPasswordsMatch = await comparePassword(enteredPassword, password)
 
-                if (!user) {
-                    return cb(null, false, { message: "User not found" })
-                }
-
-                let doPasswordsMatch = await comparePassword(password, user.password)
-
-                if (!doPasswordsMatch) {
-                    console.log("Passwords do not match")
-                    return cb(null, false, { message: "Incorrect password" })
-                }
-
-                if (doPasswordsMatch) {
-                    console.log("Passwords match")
-                    return cb(null, user)
-                }
+                                if (!doPasswordsMatch) {
+                                    console.log("Incorrect password")
+                                    return cb(null, false, { message: "Incorrect password" })
+                                }
 
 
+                                if (doPasswordsMatch) {
+                                    console.log("Passwords match", JSON.stringify(user))
+                                    return cb(null, user)
+                                }
+
+                            } else {
+                                return cb(null, false, { message: "User does not exist" })
+                            }
+                        })
+                    }
+                })
+
+                terminateFirebase()
             } catch (e) {
                 console.error("Failed to get DB")
                 return cb(e, false, { message: "Failed to get DB" })
@@ -66,21 +77,27 @@ export const verifyJWT = () => {
     passport.use(new JwtStrategy(jwtOptions, async (payload: any, cb: Function) => {
 
         try {
-            const { client, collection } = (await getClient(process.env.MONGO_DB_URI as string))
+            const modCollectionRef = firebaseDB.collection(process.env.DB_MOD_COLLECTION as string)
+            let query = await modCollectionRef.where('username', '==', payload.username).limit(1)
 
-            let db = collection.collection(process.env.DB_MOD_COLLECTION as string)
-            let user = await db.findOne({ username: payload.username }) as userDocument
-
-            await client.close()
-
-            if (!user) {
-                return cb(null, false, { message: "User not found" })
-            }
-
-            if (user) {
-                console.log("User's token is valid")
-                return cb(null, user)
-            }
+            query.get().then(async (querySnapshot: querySnapshot) => {
+                if (querySnapshot.empty) {
+                    console.log("Token Invalid")
+                    return cb(null, false, { message: "User Token invalid" })
+                } else {
+                    querySnapshot.forEach(async (doc) => {
+                        if (doc.exists) {
+                            const { username } = doc.data()
+                            const user = { username }
+                            console.log("User's token is valid")
+                            return cb(null, user)
+                        } else {
+                            console.log("Token Invalid")
+                            return cb(false, { message: "User Token invalid" })
+                        }
+                    })
+                }
+            })
 
         } catch (e) {
             console.error("Failed to verify JWT")

@@ -6,7 +6,7 @@ import { Response } from 'express';
 /**
  * This Object contains the functions that are is used to send response to the client
  */
-export const sendReponse = {
+export const sendResponse = {
 
     /**
      * This function is used to send a successful 200 response to the client
