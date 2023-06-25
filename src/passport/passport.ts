@@ -33,8 +33,9 @@ export const verifyUser = () => {
                     } else {
                         querySnapshot.forEach(async (doc) => {
                             if (doc.exists) {
+                                const id = doc.id
                                 const { username, password } = doc.data()
-                                const user = { username, password }
+                                const user = { id, username, password }
                                 let doPasswordsMatch = await comparePassword(enteredPassword, password)
 
                                 if (!doPasswordsMatch) {

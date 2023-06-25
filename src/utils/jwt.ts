@@ -11,7 +11,7 @@ dotenv.config();
 
 export const generateToken = (user: userDocument) => {
     const payload = {
-        id: user._id,
+        id: user.id,
         username: user.username,
     }
 

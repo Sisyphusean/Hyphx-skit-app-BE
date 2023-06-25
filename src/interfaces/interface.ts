@@ -7,7 +7,7 @@ export interface responseFormat {
 }
 
 export interface userDocument {
-    _id: ObjectId | undefined,
+    id: ObjectId | undefined,
     username: string,
     password: string
 }

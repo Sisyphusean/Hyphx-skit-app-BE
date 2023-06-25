@@ -40,7 +40,7 @@ loginRouter.post('/password', (req: Request, res: Response, next) => {
             if (user) {
                 const token = generateToken(user as userDocument)
                 const data = {
-                    // id: user._id,
+                    id: user.id,
                     username: user.username,
                     token: token
                 }
