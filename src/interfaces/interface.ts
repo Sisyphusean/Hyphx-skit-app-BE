@@ -22,3 +22,9 @@ export interface firebaseMessage {
     },
     topic: string
 }
+
+export interface liveStreamDocument {
+    streamingOn: string,
+    streamingLink: string,
+    activityType: string
+}
