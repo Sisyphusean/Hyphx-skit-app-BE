@@ -74,17 +74,19 @@ adminRouter.post('/livestream/update',
                 ).catch((error) => {
                     sendResponse.internalError(res, "Failed to update livestream", 500)
                 })
-            } else {
+            } else if (streamingOn === "none" && (streamingLink !== "none" || activityType !== "none")) {
+
                 let errorMessage: { [key: string]: string | undefined } = { streamingLinkError: undefined, activityTypeError: undefined }
-                if (streamingOn === "none" && streamingLink !== "none") {
+                if (streamingLink !== "none") {
                     errorMessage.streamingLinkError = "If Hyphonix is not currently streaming, please set the streaming link to 'none'"
                 }
 
-                if (streamingOn === "none" && activityType !== "none") {
+                if (activityType !== "none") {
                     errorMessage.activityTypeError = "If Hyphonix is not currently streaming, please set the activity type to 'none'"
                 }
 
                 sendResponse.badRequest(res, "Error", 400, { ...errorMessage })
+
             }
 
             //If Hx is streaming on youtube or twitch and the streaming link is set, update the livestream
