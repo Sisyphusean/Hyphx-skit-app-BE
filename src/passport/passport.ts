@@ -1,21 +1,11 @@
-//Types
-import { VerifyFunction } from 'passport-local';
-
-//Functions
-import { getClient } from '../db/db';
-
 //Utilities
 import { comparePassword } from '../utils/cryptoHash';
-
-//Interfaces
-import { userDocument } from '../interfaces/interface';
 
 //Firebase
 import { db as firebaseDB, terminateFirebase, querySnapshot } from '../db/firestore';
 
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
-const jwt = require('jsonwebtoken');
 const passport = require('passport');
 var LocalStrategy = require('passport-local');
 const dotenv = require('dotenv');
