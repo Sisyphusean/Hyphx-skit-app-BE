@@ -5,7 +5,7 @@ import * as admin from 'firebase-admin';
 import { firebaseConfig } from '../constants/firebaseconfig';
 
 //Initialize Firebase
-admin.initializeApp({
+export const initializedFirebaseAdmin = admin.initializeApp({
     credential: admin.credential.cert({
         projectId: firebaseConfig.project_id,
         clientEmail: firebaseConfig.client_email,
