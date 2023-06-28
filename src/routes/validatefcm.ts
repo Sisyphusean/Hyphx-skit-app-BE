@@ -233,8 +233,9 @@ validateFCMRouter.post('/validatetoken',
 validateFCMRouter.post('/savetoken',
     saveFcmTokenSchema,
     async (req: Request, res: Response) => {
-
+        console.log(req.body)
         const result = validationResult(req)
+
 
         if (!result.isEmpty()) {
             sendResponse.badRequest(res, "Error", 400, { ...result.array() })
