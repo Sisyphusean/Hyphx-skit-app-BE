@@ -87,6 +87,21 @@ export const sendResponse = {
         return res.status(status).json(response);
     },
 
+    conflict: (
+        res: Response,
+        message: string = "Resource already exists",
+        status: responseTypes["conflict"] = 409,
+        data = {}
+    ) => {
+        const response = {
+            status,
+            message,
+            data
+        };
+
+        res.status(status).json(response);
+    },
+
     /**
     * This function is used to send an internal error with the status code of 500 to the client
     * @param res This is the response object used to send the message
