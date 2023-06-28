@@ -31,6 +31,39 @@ export const sendResponse = {
         return res.status(status).json(response);
     },
 
+    accepted: (
+        res: Response,
+        message: string,
+        status: responseTypes["accepted"] = 202,
+        data = {}) => {
+
+        const response = {
+            status,
+            message,
+            data
+        };
+
+        return res.status(status).json(response);
+    },
+
+    noContent: (
+        res: Response,
+        message: string = "No content",
+        status: responseTypes["noContent"] = 204,
+        data = {}) => {
+
+        const response = {
+            status,
+            message,
+            data
+        };
+
+        return res.status(status).json(response);
+    },
+
+
+
+
     /**
      * This function is used to send a 400 response to the client
      * @param res This is the response object used to send the message

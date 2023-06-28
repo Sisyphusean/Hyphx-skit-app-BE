@@ -75,7 +75,7 @@ export const updateLiveStreamSchema = checkSchema({
     }
 })
 
-export const createFcmTokenSchema = checkSchema({
+export const saveFcmTokenSchema = checkSchema({
     token: {
         in: ['body'],
         trim: true,

@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express'
 import dotenv from 'dotenv';
 
 //ValidatorSchema
-import { createFcmTokenSchema, validateFcmTokenSchema, updateFcmTokenSchema } from '../schemas/validatorschemas';
+import { saveFcmTokenSchema, validateFcmTokenSchema, updateFcmTokenSchema } from '../schemas/validatorschemas';
 
 //Response handlers
 import { sendResponse } from '../utils/sendresponse';
@@ -207,7 +207,7 @@ validateFCMRouter.post('/validatetoken',
                 if (!isTokenValid) {
                     await deleteToken(tokenData.fcmData.token).then(
                         (resolve) => {
-                            sendResponse.success(res, "Token invalidated successfully", 200, { isTokenValid: false })
+                            sendResponse.accepted(res, "Token invalidated successfully", 202, { isTokenValid: false })
                         },
 
                         (reject) => {
@@ -230,8 +230,8 @@ validateFCMRouter.post('/validatetoken',
         }
     })
 
-validateFCMRouter.post('/createtoken',
-    createFcmTokenSchema,
+validateFCMRouter.post('/savetoken',
+    saveFcmTokenSchema,
     async (req: Request, res: Response) => {
 
         const result = validationResult(req)
