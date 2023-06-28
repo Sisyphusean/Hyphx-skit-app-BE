@@ -47,9 +47,6 @@ app.use(passport.initialize());
 //add morgan to log HTTP requests
 app.use(morgan('dev'));
 
-//Instantiate cors
-app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
-
 console.log("Environment: " + environment)
 
 //Add JSON to Body
@@ -64,7 +61,10 @@ app.use(function (err: HttpError, req: Request, res: Response, next: NextFunctio
     }
 });
 
-startSever(port, environment, app) 
+//Instantiate cors
+app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
+
+startSever(port, environment, app)
 
 app.use('/login', loginRouter);
 app.use('/admin', adminRouter);
