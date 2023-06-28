@@ -88,6 +88,26 @@ export const sendResponse = {
     },
 
     /**
+     * This function is used to send a 401 response to the client
+     * @param res This is the response object used to send the message
+     * @param message This is the message to be sent to the client
+     * @param status Default status here is 401
+     * @returns 
+     */
+    unauthorized: (
+        res: Response,
+        message: string,
+        status: responseTypes["unauthorized"] = 401) => {
+
+        const response = {
+            status,
+            message
+        };
+
+        return res.status(status).json(response);
+    },
+
+    /**
      * This function is used to send a forbidden 403 response to the client
      * @param res This is the response object used to send the message
      * @param message This is the message to be sent to the client. It is set to Access Denied by default

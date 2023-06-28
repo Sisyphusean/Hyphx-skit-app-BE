@@ -54,15 +54,27 @@ app.use(bodyParser.json({ strict: true }));
 
 //Handle Malformed JSONs
 app.use(function (err: HttpError, req: Request, res: Response, next: NextFunction) {
-    if (err instanceof SyntaxError && err.statusCode === 400 && 'body' in err) {
+    if (err.message !== 'Not allowed by CORS' && err instanceof SyntaxError && err.statusCode === 400 && 'body' in err) {
         sendResponse.badRequest(res, "Invalid JSON format", 400)
-    } else {
+    }
+
+    else {
         next();
     }
 });
 
+
 //Instantiate cors
-app.use(cors(environment === 'development' ? devCorsSetup : prodAndStagingCorsSetup))
+app.use(cors(environment === "development" ? devCorsSetup : prodAndStagingCorsSetup))
+
+//Properly handle CORS errors
+app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
+    if (err.message === 'Not allowed by CORS') {
+        sendResponse.unauthorized(res, "Unauthorized")
+    }
+})
+
+
 
 startSever(port, environment, app)
 
