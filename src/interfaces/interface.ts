@@ -1,5 +1,8 @@
 import { ObjectId } from "mongodb"
 
+//Types
+import {subscribedTo} from './types'
+
 export interface responseFormat {
     status: number,
     message: "Success",
@@ -27,4 +30,16 @@ export interface liveStreamDocument {
     streamingOn: string,
     streamingLink: string,
     activityType: string
+}
+
+export interface fcmClientDocument {
+    token: string,
+    platform: string,
+    addedOn: Date,
+    messagelastreceivedon: Date,
+    subscribedTo: subscribedTo
+}
+
+export interface fcmClientDocumentWithId extends fcmClientDocument {
+    id: string
 }

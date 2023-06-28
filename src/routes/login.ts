@@ -23,7 +23,7 @@ verifyUser()
 //Verify JWT
 verifyJWT()
 
-const loginRouter = express.Router();
+export const loginRouter = express.Router();
 
 loginRouter.post('/password', (req: Request, res: Response, next) => {
     passport.authenticate('local', { session: false },
@@ -67,5 +67,3 @@ loginRouter.get('/jwtverification', (req: Request, res: Response, next) => {
         }
     )(req, res, next)
 })
-
-module.exports = loginRouter 

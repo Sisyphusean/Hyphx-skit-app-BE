@@ -8,3 +8,5 @@ export type responseTypes = {
     conflict: 409,
     internalServerError: 500,
 }
+
+export type subscribedTo = ['nameskit', 'livestream'] | []

@@ -4,6 +4,13 @@ import { checkSchema, validationResult } from 'express-validator';
 //Regex
 import { youtubeRegex, twitchRegex } from '../constants/regex';
 
+// Custom validation function to check if the value is a valid date
+function isValidDate(value: string) {
+    const date = new Date(value);
+    return !isNaN(date.getTime());
+}
+
+
 /**
  * This schema validates the endpoint used to update the details of Hx being live
  */
@@ -64,6 +71,95 @@ export const updateLiveStreamSchema = checkSchema({
             options: [['raid', 'nameskit', 'none']],
             errorMessage: "Activity type must be either raid, nameskit, or none (case sensitive)",
             bail: true
+        }
+    }
+})
+
+export const createFcmTokenSchema = checkSchema({
+    token: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isString: {
+            errorMessage: "The FCM token must be a token",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The FCM token must not be empty",
+            bail: true
+        }
+    },
+
+    platform: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isString: {
+            errorMessage: "The user's platform must be a string",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The user's platform must not be empty",
+            bail: true
+        },
+        isIn: {
+            options: [['android', 'ios', 'macos', 'windows', 'linux', 'chromeos']],
+            errorMessage: "The user's platform must be either android, ios, macos, windows, linux, or chromeos (case sensitive)",
+            bail: true
+        }
+    }
+})
+
+export const validateFcmTokenSchema = checkSchema({
+    token: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isString: {
+            errorMessage: "The FCM token must be a token",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The FCM token must not be empty",
+            bail: true
+        }
+    },
+})
+
+export const updateFcmTokenSchema = checkSchema({
+    token: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isString: {
+            errorMessage: "The FCM token must be a token",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The FCM token must not be empty",
+            bail: true
+        }
+    },
+
+    messagelastreceivedon: {
+        in: ['body'],
+        trim: true,
+        isString: {
+            errorMessage: "The last message received date must be a date",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The last message received date must not be empty",
+            bail: true
+        },
+        custom: {
+            options: (value) => {
+                const validDate = isValidDate(value)
+                if (!validDate) {
+                    throw new Error('The last message received date must be a valid date');
+                }
+                return true
+            }
         }
     }
 })

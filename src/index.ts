@@ -22,6 +22,8 @@ import { devCorsSetup, prodAndStagingCorsSetup } from './constants/cors';
 
 //Routes
 import { adminRouter } from './routes/admin';
+import { loginRouter } from './routes/login';
+import { validateFCMRouter } from './routes/validatefcm';
 
 //Passport
 import { verifyUser } from './passport/passport';
@@ -35,8 +37,6 @@ const express = require('express');
 const cors = require('cors')
 const app: Express = express();
 const morgan = require('morgan');
-const loginRouter = require('./routes/login');
-
 
 const port = process.env.PORT;
 const environment = process.env.ENVIRONMENT;
@@ -64,10 +64,11 @@ app.use(function (err: HttpError, req: Request, res: Response, next: NextFunctio
     }
 });
 
-startSever(port, environment, app)
+startSever(port, environment, app) 
 
 app.use('/login', loginRouter);
-app.use('/admin', adminRouter)
+app.use('/admin', adminRouter);
+app.use('/fcm', validateFCMRouter);
 
 app.get('/', (req: Request, res: Response) => {
     sendResponse.success(res, "Success")
