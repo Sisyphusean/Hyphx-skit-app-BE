@@ -22,13 +22,25 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
 
             try {
                 const newData = change.after.data()
-                let message = {
-                    topic: liveStreamTopic,
-                    notification: {
-                        title: "Hx is live!",
-                        body: `Hx is now live on ${newData.streamingOn}!`
-                    }
-                };
+                let message;
+
+                if (newData.streamingOn !== "none") {
+                    message = {
+                        topic: liveStreamTopic,
+                        notification: {
+                            title: "Hx is live!",
+                            body: `Hx is now live on ${newData.streamingOn}!`
+                        }
+                    };
+                } else {
+                    message = {
+                        topic: liveStreamTopic,
+                        notification: {
+                            title: "Hx is no longer live!",
+                            body: `Hx's stream has ended`
+                        }
+                    };
+                }
 
                 await initializedFirebaseAdmin.messaging().send(message);
                 console.log("Successfully sent live notification");
