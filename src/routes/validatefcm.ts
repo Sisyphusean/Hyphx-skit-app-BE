@@ -44,6 +44,7 @@ const isTokensTimeStillValid = (messageLastReceived: Date) => {
 }
 
 const getTokenData = async (token: string, dateVersionOfMessageLastRevceived: Date | undefined = undefined) => {
+
     const query = await fcmDetailsCollection.where('token', '==', token).limit(1)
 
     let wasTokenReturned = false
@@ -58,6 +59,7 @@ const getTokenData = async (token: string, dateVersionOfMessageLastRevceived: Da
                     async (doc) => {
 
                         const data = await doc.data()
+                        // console.log(data)
                         const platform = data.platform
                         const addedon = data.addedOn.toDate()
                         const messagelastreceivedon = dateVersionOfMessageLastRevceived ? dateVersionOfMessageLastRevceived : data.messagelastreceivedon.toDate()
@@ -66,7 +68,11 @@ const getTokenData = async (token: string, dateVersionOfMessageLastRevceived: Da
                         wasTokenReturned = true
                         fcmData = { id, token, platform, addedOn: addedon, messagelastreceivedon, subscribedTo }
 
+                        // console.log(fcmData)
+
                     })
+            } else {
+                console.log("Token not found")
             }
 
         }
@@ -160,25 +166,30 @@ validateFCMRouter.post('/updatelastmessageon',
             const newMessageLastReceivedOn: Date = new Date(req.body.messagelastreceivedon)
 
             let tokenData = await getTokenData(token, newMessageLastReceivedOn)
-            let masterTokenDocument = fcmDetailsCollection.doc(tokenData.fcmData.id as string)
 
-            const newTokenDocument: fcmClientDocument = {
-                token: token,
-                platform: tokenData.fcmData.platform,
-                addedOn: tokenData.fcmData.addedOn,
-                messagelastreceivedon: newMessageLastReceivedOn,
-                subscribedTo: tokenData.fcmData.subscribedTo
-            }
+            if (tokenData.wasTokenReturned) {
+                let masterTokenDocument = fcmDetailsCollection.doc(tokenData.fcmData.id as string)
 
-            await masterTokenDocument.update({ ...newTokenDocument }).then(
-                () => {
-                    console.log("Updated last message received on for token")
-                    sendResponse.success(res, "Updated last message received on for token", 200, { ...newTokenDocument })
+                const newTokenDocument: fcmClientDocument = {
+                    token: token,
+                    platform: tokenData.fcmData.platform,
+                    addedOn: tokenData.fcmData.addedOn,
+                    messagelastreceivedon: newMessageLastReceivedOn,
+                    subscribedTo: tokenData.fcmData.subscribedTo
                 }
-            ).catch((error) => {
-                console.error("Failed to update last message received on for token", error)
-                sendResponse.internalError(res, "Failed to update last message received on for token", 500)
-            })
+
+                await masterTokenDocument.update({ ...newTokenDocument }).then(
+                    () => {
+                        console.log("Updated last message received on for token")
+                        sendResponse.success(res, "Updated last message received on for token", 200, { ...newTokenDocument })
+                    }
+                ).catch((error) => {
+                    console.error("Failed to update last message received on for token", error)
+                    sendResponse.internalError(res, "Failed to update last message received on for token", 500)
+                })
+            } else {
+                sendResponse.notFound(res, "Token not found", 404)
+            }
 
         }
 
@@ -233,7 +244,7 @@ validateFCMRouter.post('/validatetoken',
 validateFCMRouter.post('/savetoken',
     saveFcmTokenSchema,
     async (req: Request, res: Response) => {
-        
+
         const result = validationResult(req)
 
 
