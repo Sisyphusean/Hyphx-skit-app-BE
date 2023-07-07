@@ -1,6 +1,6 @@
 
 export const devCorsSetup = {
-    origin: 'https://localhost:5173',
+    origin: '*',
     optionsSuccessStatus: 200
 }
 
