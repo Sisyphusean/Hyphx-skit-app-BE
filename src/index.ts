@@ -26,12 +26,11 @@ import { loginRouter } from './routes/login';
 import { validateFCMRouter } from './routes/validatefcm';
 
 //Passport
-import { verifyUser } from './passport/passport';
+import { verifyUser,  } from './passport/passport';
 import passport from 'passport';
-var LocalStrategy = require('passport-local');
 
-// Register the 'local' strategy with Passport
-passport.use(new LocalStrategy(verifyUser));
+//Invoke verify user to use passport to verify user
+verifyUser()
 
 const express = require('express');
 const cors = require('cors')
@@ -75,7 +74,6 @@ app.use((err: HttpError, req: Request, res: Response, next: NextFunction) => {
 })
 
 
-
 startSever(port, environment, app)
 
 app.use('/login', loginRouter);
@@ -88,7 +86,7 @@ app.get('/', (req: Request, res: Response) => {
 
 //404
 app.use((req: Request, res: Response) => {
-    sendResponse.notFound(res, "Not Found")
+    sendResponse.notFound(res, "404 Error: The request you are looking for does not exist")
 });
 
 

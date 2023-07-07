@@ -17,12 +17,6 @@ import express from 'express';
 //Interfaces
 import { userDocument } from '../interfaces/interface';
 
-//Invoke Passport setup for verifying the user
-verifyUser()
-
-//Verify JWT
-verifyJWT()
-
 export const loginRouter = express.Router();
 
 loginRouter.post('/password', (req: Request, res: Response, next) => {
