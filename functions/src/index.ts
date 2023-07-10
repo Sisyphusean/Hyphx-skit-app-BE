@@ -1,6 +1,15 @@
 import * as firebaseFunctions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 
+interface notificationMessage {
+    topic: string,
+    notification: {
+        title: string,
+        body: string
+    },
+    data?: any
+}
+
 const initializedFirebaseAdmin = admin.initializeApp(
     {
         credential: admin.credential.cert({
@@ -42,6 +51,98 @@ const batchDeleteInvalidTokens = async (refrenceArray: admin.firestore.DocumentR
     return Promise.all(massDeleteRferences);
 }
 
+const generateYoutubeNotificationMessage = (newData: any, dataToBeIncluded: any): notificationMessage | boolean => {
+
+    let message: notificationMessage
+
+    if (newData.streamingOn === "youtube" && newData.activityType === "nameskit") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Come join Hx's name skit event 🎭!",
+                body: `Hx is now live on ${newData.streamingOn} and running a community event. Come participate and join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    if (newData.streamingOn === "youtube" && newData.activityType === "none") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Hyphonix is live on Yotube▶️!",
+                body: `Hx is now live on ${newData.streamingOn}! Come join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    if (newData.streamingOn === "youtube" && newData.activityType === "raid") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Hx is streaming Raid Shadow Legends👾🧙🏾!",
+                body: `Hx is now live on ${newData.streamingOn} streaming Raid Shadow Legends! Come watch the stream and join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    return false
+}
+
+const generateTwitchNotificationMessage = (newData: any, dataToBeIncluded: any): notificationMessage | boolean => {
+
+    let message: notificationMessage
+
+    if (newData.streamingOn === "twitch" && newData.activityType === "nameskit") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Come join Hx's name skit event 🎭!",
+                body: `Hx is now live on ${newData.streamingOn} and running a community event. Come participate and join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    if (newData.streamingOn === "twitch" && newData.activityType === "none") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Hyphonix is live on Twitch!",
+                body: `Hx is now live on ${newData.streamingOn}! Come join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    if (newData.streamingOn === "twitch" && newData.activityType === "raid") {
+        message = {
+            topic: liveStreamTopicString,
+            notification: {
+                title: "Hx is streaming Raid Shadow Legends👾🧙🏾!",
+                body: `Hx is now live on ${newData.streamingOn} streaming Raid Shadow Legends! Come watch the stream and join the fun`
+            },
+            data: dataToBeIncluded
+        };
+
+        return message;
+    }
+
+    return false;
+}
+
 
 export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`${livestreamCollectionString}/${liveStreamDocumentString}`)
     .onUpdate(
@@ -55,30 +156,33 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
                     activityType: newData.activityType,
                     streamingLink: newData.streamingLink
                 }
-                let message;
+                let message: notificationMessage | boolean = false;
 
                 if (newData.streamingOn !== "none") {
-                    message = {
-                        topic: liveStreamTopicString,
-                        notification: {
-                            title: "Hx is live!",
-                            body: `Hx is now live on ${newData.streamingOn}!`
-                        },
-                        data: dataToBeIncluded
-                    };
+
+                    if (newData.streamingOn === "youtube") {
+                        message = generateYoutubeNotificationMessage(newData, dataToBeIncluded);
+                    }
+
+                    if (newData.streamingOn === "twitch") {
+                        message = generateTwitchNotificationMessage(newData, dataToBeIncluded);
+                    }
+
                 } else {
                     message = {
                         topic: liveStreamTopicString,
                         notification: {
-                            title: "Hx is no longer live!",
-                            body: `Hx's stream has ended`
+                            title: "Hx is no longer live!😔",
+                            body: `Hx's stream has ended. Don't worry, make sure to check back tomorrow. He streams live everyday!`
                         },
                         data: dataToBeIncluded
                     };
                 }
 
-                await initializedFirebaseAdmin.messaging().send(message);
-                console.log("Successfully sent live notification");
+                if (typeof message !== "boolean") {
+                    await initializedFirebaseAdmin.messaging().send(message);
+                    console.log("Successfully sent live notification");
+                }
             } catch (error) {
                 console.error("Failed to send Notification", error);
             }
