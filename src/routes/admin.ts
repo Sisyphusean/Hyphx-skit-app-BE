@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 
 //Types
-import { Request, Response } from 'express';
+import { Request, Response, response } from 'express';
 
 //Utils
 import { sendResponse } from '../utils/sendresponse';
@@ -21,10 +21,10 @@ import { db as firebaseDB } from '../db/firestore'
 import { validationResult, matchedData } from 'express-validator';
 
 //Validator Schema
-import { updateLiveStreamSchema } from '../schemas/validatorschemas';
+import { updateLiveStreamSchema, updateOmegleStreamSchema } from '../schemas/validatorschemas';
 
 //Interfaces
-import { liveStreamDocument } from '../interfaces/interface';
+import { liveStreamDocument, rawOmegleTagsData, omegleTagsDocument } from '../interfaces/interface';
 
 //Invoke Verify JWT for verifying the user's JWT
 verifyJWT()
@@ -123,3 +123,67 @@ adminRouter.post('/livestream/update',
         }
 
     })
+
+adminRouter.post('/omegletags/update',
+    updateOmegleStreamSchema,
+    async (req: Request, res: Response) => {
+
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            sendResponse.badRequest(res, "Error", 400, { ...result.array() })
+        } else if (result.isEmpty()) {
+
+            let { currentOmegleTags } = matchedData(req)
+            const omegleTagsCollection = firebaseDB.collection(process.env.DB_OMEGLE_COLLECTION as string)
+            const omegleTagMasterDocument = omegleTagsCollection.doc(process.env.DB_OMEGLE_DOCUMENT_ID as string)
+
+            let dbOmegleData: omegleTagsDocument | false = await omegleTagMasterDocument.get().then(
+                (snapshot) => {
+                    if (snapshot.exists) {
+                        return snapshot.data() as omegleTagsDocument
+                    } else {
+                        return false
+                    }
+                }
+            )
+
+            if (dbOmegleData) {
+
+                let mergedOmegleTags: string[] = [...dbOmegleData.currentOmegleTags]
+
+                //Ensure that only new tags are added to the database
+                for (let i = 0; i < currentOmegleTags.length; i++) {
+                    if (!dbOmegleData.currentOmegleTags.includes(currentOmegleTags[i])) {
+                        mergedOmegleTags.push(currentOmegleTags[i])
+                    }
+                }
+
+                omegleTagMasterDocument.update({ currentOmegleTags: mergedOmegleTags }).then(
+                    (response) => {
+                        console.log("Successfully updated omegle tags")
+                        sendResponse.success(res, "Updated Omegle Tags", 200, mergedOmegleTags)
+                    }
+                ).catch(error => sendResponse.badRequest(res, "Failed to update omegle tags", 400))
+            } else {
+                sendResponse.internalError(res, "Failed to get omegle tags", 500)
+            }
+        }
+
+
+    })
+
+adminRouter.get('/omegletags/reset', (req: Request, res: Response) => {
+    const omegleTagsCollection = firebaseDB.collection(process.env.DB_OMEGLE_COLLECTION as string)
+    const omegleTagMasterDocument = omegleTagsCollection.doc(process.env.DB_OMEGLE_DOCUMENT_ID as string)
+
+    omegleTagMasterDocument.update({ currentOmegleTags: [] }).then(
+        (response) => {
+            console.log("Successfully reset omegle tags")
+            sendResponse.success(res, "Reset Omegle Tags", 200)
+        }
+    ).catch((error) => {
+        console.error("Failed to reset omegle tags", error)
+        sendResponse.internalError(res, "Failed to reset omegle tags", 500)
+    })
+})

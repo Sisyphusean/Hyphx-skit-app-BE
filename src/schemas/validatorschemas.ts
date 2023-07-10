@@ -1,5 +1,8 @@
 //express-validator
-import { checkSchema, validationResult } from 'express-validator';
+import { checkSchema } from 'express-validator';
+
+//Validator js
+import validator from 'validator';
 
 //Regex
 import { youtubeRegex, twitchRegex } from '../constants/regex';
@@ -71,6 +74,49 @@ export const updateLiveStreamSchema = checkSchema({
             options: [['raid', 'nameskit', 'none']],
             errorMessage: "Activity type must be either raid, nameskit, or none (case sensitive)",
             bail: true
+        }
+    }
+})
+
+/**
+ * This schema validates the endpoint used to update the details of Hx's Omegle tags
+ */
+export const updateOmegleStreamSchema = checkSchema({
+    currentOmegleTags: {
+        in: ['body'],
+        isArray: {
+            errorMessage: "Current omegle tags must only be an array of a string or strings",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "Current omegle tags must not be empty",
+            bail: true
+        },
+        custom: {
+            options:
+                //Custom function to check if the array contains only strings
+                (value) => {
+
+                    if (Array.isArray(value)) {
+
+                        if(value.length == 0){
+                            throw new Error("Current omegle tags must not be empty")
+                        }
+
+                        const isArrayValid = value.every(element => typeof element === 'string')
+
+                        if (!isArrayValid) {
+                            throw new Error("Current omegle tags must only be an array of a string or strings")
+                        }
+
+                        return value.map((element: string) => {
+                            //Trim and escape each string
+                            return validator.escape(validator.trim(element))
+                        })
+                    }
+
+                    throw new Error("Current omegle tags must only be an array of a string or strings")
+                }
         }
     }
 })

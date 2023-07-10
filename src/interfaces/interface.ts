@@ -43,3 +43,10 @@ export interface fcmClientDocument {
 export interface fcmClientDocumentWithId extends fcmClientDocument {
     id: string
 }
+export interface rawOmegleTagsData {
+    currentOmegleTags: string[],
+}
+
+export interface omegleTagsDocument extends rawOmegleTagsData {
+    id: string
+}
