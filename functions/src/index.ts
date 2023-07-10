@@ -49,6 +49,12 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
 
             try {
                 const newData = change.after.data()
+                const dataToBeIncluded = {
+                    messageFromEvent: "liveStreamUpdate",
+                    streamingOn: newData.streamingOn,
+                    activityType: newData.activityType,
+                    streamingLink: newData.streamingLink
+                }
                 let message;
 
                 if (newData.streamingOn !== "none") {
@@ -57,7 +63,8 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
                         notification: {
                             title: "Hx is live!",
                             body: `Hx is now live on ${newData.streamingOn}!`
-                        }
+                        },
+                        data: dataToBeIncluded
                     };
                 } else {
                     message = {
@@ -65,7 +72,8 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
                         notification: {
                             title: "Hx is no longer live!",
                             body: `Hx's stream has ended`
-                        }
+                        },
+                        data: dataToBeIncluded
                     };
                 }
 
