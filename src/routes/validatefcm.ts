@@ -29,6 +29,7 @@ const fcmDetailsCollection = firebaseDB.collection(process.env.DB_FCM_COLLECTION
 
 const nameSkitTopic = process.env.FIREBASE_NAMESKIT_TOPIC as string
 const livestreamTopic = process.env.FIREBASE_LIVESTREAM_TOPIC as string
+const omegleTopic = process.env.FIREBASE_OMEGLE_TOPIC as string
 
 const isTokensTimeStillValid = (messageLastReceived: Date) => {
     const currentDate = new Date()
@@ -86,6 +87,7 @@ const subscribeTokenToTopics = async (token: string) => {
         await Promise.all([
             firebaseAdmin.messaging().subscribeToTopic(token, livestreamTopic),
             firebaseAdmin.messaging().subscribeToTopic(token, nameSkitTopic),
+            firebaseAdmin.messaging().subscribeToTopic(token, omegleTopic)
         ]);
         return true;
     } catch (error) {
@@ -99,6 +101,7 @@ const unSubscribeTokenFromTopics = async (token: string) => {
         await Promise.all([
             firebaseAdmin.messaging().unsubscribeFromTopic(token, livestreamTopic),
             firebaseAdmin.messaging().unsubscribeFromTopic(token, nameSkitTopic),
+            firebaseAdmin.messaging().unsubscribeFromTopic(token, omegleTopic)
         ]);
         return true;
     } catch (error) {
