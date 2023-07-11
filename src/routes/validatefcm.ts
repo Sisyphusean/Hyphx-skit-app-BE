@@ -278,7 +278,7 @@ validateFCMRouter.post('/savetoken',
                         platform: platform,
                         addedOn: new Date(),
                         messagelastreceivedon: new Date(),
-                        subscribedTo: ["nameskit", "livestream"]
+                        subscribedTo: ["nameskit", "livestream", "omegle"]
                     }
 
                     newClientsFcmDoc.set(newClientsFcmDocData).then(

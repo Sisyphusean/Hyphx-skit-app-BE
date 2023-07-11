@@ -11,4 +11,4 @@ export type responseTypes = {
     internalServerError: 500,
 }
 
-export type subscribedTo = ['nameskit', 'livestream'] | []
+export type subscribedTo = ['nameskit', 'livestream', "omegle"] | []
