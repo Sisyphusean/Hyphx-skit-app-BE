@@ -26,6 +26,10 @@ const liveStreamDocumentString = firebaseFunctions.config().db.livestream_docume
 const liveStreamTopicString = firebaseFunctions.config().topics.livestream_topic as string;
 const fcmDetailsCollectionString = firebaseFunctions.config().db.fcm_details_collection as string;
 
+const omegleDetailsCollectionString = firebaseFunctions.config().db.omegle_details_collection as string;
+const omegleDocumentString = firebaseFunctions.config().db.omegle_details_document_id as string
+const omegleTopic = firebaseFunctions.config().topics.omegle_topic as string;
+
 
 /**
  * This function batch unsubscribes tokens from all existing topics
@@ -143,7 +147,6 @@ const generateTwitchNotificationMessage = (newData: any, dataToBeIncluded: any):
     return false;
 }
 
-
 export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`${livestreamCollectionString}/${liveStreamDocumentString}`)
     .onUpdate(
         async (change) => {
@@ -219,4 +222,31 @@ export const unsubscribeAndDeleteInvalidTokens = firebaseFunctions.pubsub.schedu
     }
 
 })
+
+export const sendOmegleNotification = firebaseFunctions.firestore.document(`${omegleDetailsCollectionString}/${omegleDocumentString}`)
+    .onUpdate(async (change) => {
+        try {
+            const updatedOmegleArray = change.after.data()
+            const dataPayload = {
+                messageFromEvent: "omegleUpdate",
+                currentOmegleTags: updatedOmegleArray.currentOmegleTags.join(", ")
+            }
+            let message = {
+                topic: omegleTopic,
+                data: dataPayload
+            }
+
+            initializedFirebaseAdmin.messaging().send(message)
+                .then(
+                    (onFulfiled) => {
+                        console.log("Successfully sent Omegle notification")
+                    }
+                ).catch(error => {
+                    console.error("Failed to send Omegle notification", error)
+                })
+
+        } catch (error) {
+            console.error("Failed to send Omegle notification", error)
+        }
+    })
 
