@@ -24,9 +24,10 @@ import { devCorsSetup, prodAndStagingCorsSetup } from './constants/cors';
 import { adminRouter } from './routes/admin';
 import { loginRouter } from './routes/login';
 import { validateFCMRouter } from './routes/validatefcm';
+import { userRouter } from './routes/user';
 
 //Passport
-import { verifyUser,  } from './passport/passport';
+import { verifyUser, } from './passport/passport';
 import passport from 'passport';
 
 //Invoke verify user to use passport to verify user
@@ -62,7 +63,6 @@ app.use(function (err: HttpError, req: Request, res: Response, next: NextFunctio
     }
 });
 
-
 //Instantiate cors
 app.use(cors(environment === "development" ? devCorsSetup : prodAndStagingCorsSetup))
 
@@ -79,6 +79,7 @@ startSever(port, environment, app)
 app.use('/login', loginRouter);
 app.use('/admin', adminRouter);
 app.use('/fcm', validateFCMRouter);
+app.use('/user', userRouter)
 
 app.get('/', (req: Request, res: Response) => {
     sendResponse.success(res, "Success")
