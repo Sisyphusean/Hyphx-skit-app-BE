@@ -36,6 +36,24 @@ export const adminRouter = express.Router();
 
 adminRouter.use('/', passport.authenticate('jwt', { session: false }))
 
+adminRouter.get('/livestream', (req: Request, res: Response) => {
+    const livestreamCollection = firebaseDB.collection(process.env.DB_LIVESTREAM_COLLECTION as string)
+    const livestreamMasterDocument = livestreamCollection.doc(process.env.DB_LIVESTREAM_DOCUMENT_ID as string)
+
+    livestreamMasterDocument.get().then(
+        (snapshot) => {
+            if (snapshot.exists) {
+                const livestreamData = snapshot.data() as liveStreamDocument
+                sendResponse.success(res, "Success", 200, { ...livestreamData })
+            } else {
+                sendResponse.notFound(res, "Livestream not found", 404)
+            }
+        }
+    ).catch((error) => {
+        console.error("Failed to get livestream", error)
+    })
+})
+
 /**
  * This route is expecting streamingOn (e.g. Youtube), streamLink (optional), 
  * and activityType (e.g nameskit or raid)
@@ -123,6 +141,24 @@ adminRouter.post('/livestream/update',
         }
 
     })
+
+adminRouter.get('/omegletags', (req: Request, res: Response) => {
+    const omegleTagsCollection = firebaseDB.collection(process.env.DB_OMEGLE_COLLECTION as string)
+    const omegleTagMasterDocument = omegleTagsCollection.doc(process.env.DB_OMEGLE_DOCUMENT_ID as string)
+
+    omegleTagMasterDocument.get().then(
+        (snapshot) => {
+            if (snapshot.exists) {
+                const omegleTagsData = snapshot.data() as rawOmegleTagsData
+                sendResponse.success(res, "Success", 200, { ...omegleTagsData })
+            } else {
+                sendResponse.notFound(res, "Omegle tags not found", 404)
+            }
+        }
+    ).catch((error) => {
+        console.error("Failed to get omegle tags", error)
+    })
+})
 
 adminRouter.post('/omegletags/update',
     updateOmegleStreamSchema,
