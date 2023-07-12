@@ -10,6 +10,10 @@ interface notificationMessage {
     data?: any
 }
 
+interface omegleTagsDocument {
+    currentOmegleTags: string[]
+}
+
 const initializedFirebaseAdmin = admin.initializeApp(
     {
         credential: admin.credential.cert({
@@ -147,17 +151,47 @@ const generateTwitchNotificationMessage = (newData: any, dataToBeIncluded: any):
     return false;
 }
 
+const getOmegleTags = async (): Promise<omegleTagsDocument | false> => {
+
+    let omegleCollection = initializedFirebaseAdmin.firestore().collection(omegleDetailsCollectionString);
+    let omegleDocument = omegleCollection.doc(omegleDocumentString);
+
+    let omegleTagsData = await omegleDocument.get()
+
+    if (omegleTagsData.exists) {
+        return omegleTagsData.data() as omegleTagsDocument
+    } else {
+        console.log("Omegle tags data does not exist")
+        return false
+    }
+
+}
+
 export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`${livestreamCollectionString}/${liveStreamDocumentString}`)
     .onUpdate(
         async (change) => {
 
             try {
+                const currentOmegleTags = await getOmegleTags().then(
+                    (response) => {
+                        if (response && typeof response !== "boolean") {
+                            return response.currentOmegleTags.join(", ")
+                        } else {
+                            return "[]"
+                        }
+                    }).catch((error) => {
+                        console.error("Failed to get Omegle tags", error)
+                        return "[]"
+                    })
                 const newData = change.after.data()
                 const dataToBeIncluded = {
                     messageFromEvent: "liveStreamUpdate",
-                    streamingOn: newData.streamingOn,
-                    activityType: newData.activityType,
-                    streamingLink: newData.streamingLink
+                    liveStreamData: JSON.stringify({
+                        streamingOn: newData.streamingOn,
+                        activityType: newData.activityType,
+                        streamingLink: newData.streamingLink
+                    }),
+                    currentOmegleTags
                 }
                 let message: notificationMessage | boolean = false;
 
@@ -184,7 +218,7 @@ export const sendLiveStreamNotification = firebaseFunctions.firestore.document(`
 
                 if (typeof message !== "boolean") {
                     await initializedFirebaseAdmin.messaging().send(message);
-                    console.log("Successfully sent live notification");
+                    console.log("Successfully sent live notification", message);
                 }
             } catch (error) {
                 console.error("Failed to send Notification", error);
