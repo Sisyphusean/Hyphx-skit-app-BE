@@ -34,6 +34,9 @@ const omegleDetailsCollectionString = firebaseFunctions.config().db.omegle_detai
 const omegleDocumentString = firebaseFunctions.config().db.omegle_details_document_id as string
 const omegleTopic = firebaseFunctions.config().topics.omegle_topic as string;
 
+const nameSkitCollectionString = firebaseFunctions.config().db.nameskit_collection as string;
+const nameSkitDocumentString = firebaseFunctions.config().db.nameskit_document_id as string;
+const nameSkitTopic = firebaseFunctions.config().topics.nameskit_topic as string;
 
 /**
  * This function batch unsubscribes tokens from all existing topics
@@ -43,7 +46,11 @@ const omegleTopic = firebaseFunctions.config().topics.omegle_topic as string;
 const batchUnsubscribeTokensFromTopic = async (tokensArray: string[]) => {
     const messaging = initializedFirebaseAdmin.messaging();
     // The unsubscribe operation is async and returns a promise.
-    const unsubscribePromises = tokensArray.map(token => messaging.unsubscribeFromTopic(token, liveStreamTopicString));
+    const unsubscribePromises = tokensArray.map(token => {
+        messaging.unsubscribeFromTopic(token, liveStreamTopicString)
+        messaging.unsubscribeFromTopic(token, omegleTopic)
+        messaging.unsubscribeFromTopic(token, nameSkitTopic)
+    });
 
     return Promise.all(unsubscribePromises);
 }
@@ -281,6 +288,54 @@ export const sendOmegleNotification = firebaseFunctions.firestore.document(`${om
 
         } catch (error) {
             console.error("Failed to send Omegle notification", error)
+        }
+    })
+
+
+/**
+ * This function sends a notification to the nameskit topic when the nameskit document is updated
+ */
+export const sendNameSkitNotification = firebaseFunctions.firestore.document(`${nameSkitCollectionString}/${nameSkitDocumentString}`)
+    .onUpdate(async (change) => {
+        try {
+            const newNameSkitData = change.after.data()
+            const dataPayload = {
+                messageFromEvent: "nameSkitUpdate",
+                nameSkitData: JSON.stringify(
+                    {
+                        marksName: newNameSkitData.marksName,
+                        shouldUserBeGaslit: JSON.stringify(newNameSkitData.shouldUserBeGaslit)
+                    }
+                )
+            }
+
+            let title = ""
+
+            if (newNameSkitData.shouldUserBeGaslit) {
+                title = "Don't say the user's name! Gaslight them 🤫!"
+            } else {
+                title = `Say the user's name! It's ${newNameSkitData.marksName}!`
+            }
+
+            const message = {
+                topic: nameSkitTopic,
+                notification: {
+                    title,
+                },
+                data: dataPayload
+            }
+
+            initializedFirebaseAdmin.messaging().send(message)
+                .then(
+                    () => {
+                        console.log("Successfully sent Nameskit notification")
+                    }
+                ).catch(error => {
+                    console.error("Failed to send Nameskit notification", error)
+                })
+
+        } catch (error) {
+            console.error("Something went very wrong while sending Nameskit notification", error)
         }
     })
 
