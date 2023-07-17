@@ -99,7 +99,7 @@ export const updateOmegleStreamSchema = checkSchema({
 
                     if (Array.isArray(value)) {
 
-                        if(value.length == 0){
+                        if (value.length == 0) {
                             throw new Error("Current omegle tags must not be empty")
                         }
 
@@ -206,6 +206,36 @@ export const updateFcmTokenSchema = checkSchema({
                 }
                 return true
             }
+        }
+    }
+})
+
+export const updateNameSkitSchema = checkSchema({
+    marksName: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isString: {
+            errorMessage: "The marks name must be a string",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "The marks name must not be empty",
+            bail: true
+        },
+    },
+
+    shouldUserBeGaslit: {
+        in: ['body'],
+        trim: true,
+        escape: true,
+        isBoolean: {
+            errorMessage: "shouldUserBeGaslit should user be gaslit must be a boolean",
+            bail: true
+        },
+        notEmpty: {
+            errorMessage: "shouldUserBeGaslit should user be gaslit must not be empty",
+            bail: true
         }
     }
 })

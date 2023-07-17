@@ -21,7 +21,7 @@ import { db as firebaseDB } from '../db/firestore'
 import { validationResult, matchedData } from 'express-validator';
 
 //Validator Schema
-import { updateLiveStreamSchema, updateOmegleStreamSchema } from '../schemas/validatorschemas';
+import { updateLiveStreamSchema, updateNameSkitSchema, updateOmegleStreamSchema } from '../schemas/validatorschemas';
 
 //Interfaces
 import { liveStreamDocument, rawOmegleTagsData, omegleTagsDocument } from '../interfaces/interface';
@@ -35,6 +35,7 @@ dotenv.config();
 export const adminRouter = express.Router();
 
 adminRouter.use('/', passport.authenticate('jwt', { session: false }))
+
 /**
  * This route is expecting streamingOn (e.g. Youtube), streamLink (optional), 
  * and activityType (e.g nameskit or raid)
@@ -121,6 +122,40 @@ adminRouter.post('/livestream/update',
 
         }
 
+    })
+/**
+ * This route is used to update the name of the person being trolled as well as 
+ * whether or not the person being trolled should be gaslit
+ */
+adminRouter.post('/nameskit/update',
+    updateNameSkitSchema,
+    (req: Request, res: Response) => {
+        const result = validationResult(req);
+
+        if (!result.isEmpty()) {
+            sendResponse.badRequest(res, "Error", 400, { ...result.array() })
+        } else {
+            const marksName = matchedData(req).marksName
+            const shouldUserBeGaslit = JSON.parse(matchedData(req).shouldUserBeGaslit)
+
+            const nameskitCollection = firebaseDB.collection(process.env.DB_NAMESKIT_COLLECTION as string)
+            const nameSkitDocument = nameskitCollection.doc(process.env.DB_NAMESKIT_DOCUMENT_ID as string)
+
+            const newNameskitData = {
+                marksName,
+                shouldUserBeGaslit
+            }
+
+            nameSkitDocument.update({ ...newNameskitData }).then(
+                () => {
+                    console.log("Successfully updated nameskit")
+                    sendResponse.success(res, "Success", 200)
+                }
+            ).catch((error) => {
+                console.error("Failed to update nameskit", error)
+                sendResponse.internalError(res, "Failed to update nameskit", 500)
+            })
+        }
     })
 
 adminRouter.post('/omegletags/update',
