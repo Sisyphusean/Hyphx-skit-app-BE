@@ -325,14 +325,18 @@ export const sendNameSkitNotification = firebaseFunctions.firestore.document(`${
                 data: dataPayload
             }
 
-            initializedFirebaseAdmin.messaging().send(message)
-                .then(
-                    () => {
-                        console.log("Successfully sent Nameskit notification")
-                    }
-                ).catch(error => {
-                    console.error("Failed to send Nameskit notification", error)
-                })
+            if (newNameSkitData.marksName !== "NA NA") {
+                initializedFirebaseAdmin.messaging().send(message)
+                    .then(
+                        () => {
+                            console.log("Successfully sent Nameskit notification")
+                        }
+                    ).catch(error => {
+                        console.error("Failed to send Nameskit notification", error)
+                    })
+            } else {
+                console.log("Marks name is N/A. Not sending Nameskit notification")
+            }
 
         } catch (error) {
             console.error("Something went very wrong while sending Nameskit notification", error)
