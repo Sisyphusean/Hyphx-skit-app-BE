@@ -87,7 +87,7 @@ app.get('/', (req: Request, res: Response) => {
 
 //404
 app.use((req: Request, res: Response) => {
-    sendResponse.notFound(res, "404 Error: The request you are looking for does not exist")
+    sendResponse.notFound(res, "404 Error: The resource you are looking for does not exist")
 });
 
 

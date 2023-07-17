@@ -50,3 +50,12 @@ export interface rawOmegleTagsData {
 export interface omegleTagsDocument extends rawOmegleTagsData {
     id: string
 }
+
+export interface rawNameSkitData {
+    marksName: string,
+    shouldUserBeGaslit: boolean,
+}
+
+export interface nameSkitDocument extends rawNameSkitData {
+    id: string
+}
