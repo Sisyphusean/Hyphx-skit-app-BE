@@ -325,7 +325,9 @@ export const sendNameSkitNotification = firebaseFunctions.firestore.document(`${
                 data: dataPayload
             }
 
-            if (newNameSkitData.marksName !== "NA NA") {
+
+            //The empty state is "" across front end and backend
+            if (newNameSkitData.marksName !== "") {
                 initializedFirebaseAdmin.messaging().send(message)
                     .then(
                         () => {

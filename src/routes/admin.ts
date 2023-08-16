@@ -26,6 +26,9 @@ import { updateLiveStreamSchema, updateNameSkitSchema, updateOmegleStreamSchema 
 //Interfaces
 import { liveStreamDocument, rawOmegleTagsData, omegleTagsDocument } from '../interfaces/interface';
 
+//Utils
+import { sendSseEvent } from '../utils/sse';
+
 //Invoke Verify JWT for verifying the user's JWT
 verifyJWT()
 
@@ -34,13 +37,35 @@ dotenv.config();
 
 export const adminRouter = express.Router();
 
-adminRouter.use('/', passport.authenticate('jwt', { session: false }))
+const adminSseClients: Response[] = []
+
+adminRouter.get('/sse/subscribe', (req: Request, res: Response) => {
+    //Set headers for the SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    //Send something to establish connection
+    res.write('data: {\"trigger\":\"init\"}\n\n');
+
+    //Add the response to the array of clients
+    adminSseClients.push(res)
+
+    //Remove the response from the array of clients when the client closes the connection
+    req.on('close', () => {
+        const indexOfDisconnectedClient = adminSseClients.indexOf(res)
+        if (indexOfDisconnectedClient != -1) {
+            adminSseClients.splice(indexOfDisconnectedClient, 1)
+        }
+    })
+})
 
 /**
  * This route is expecting streamingOn (e.g. Youtube), streamLink (optional), 
  * and activityType (e.g nameskit or raid)
  */
 adminRouter.post('/livestream/update',
+    passport.authenticate('jwt', { session: false }),
     updateLiveStreamSchema,
     (req: Request, res: Response) => {
 
@@ -69,6 +94,7 @@ adminRouter.post('/livestream/update',
                 livestreamMasterDocument.update({ ...newLivestreamData }).then(
                     () => {
                         console.log("Successfully set Hx top 'no longer streaming'")
+                        sendSseEvent("livestreamUpdate", adminSseClients, { ...newLivestreamData })
                         sendResponse.success(res, "Success", 200)
                     }
                 ).catch((error) => {
@@ -102,6 +128,7 @@ adminRouter.post('/livestream/update',
                 livestreamMasterDocument.update({ ...newLivestreamData }).then(
                     () => {
                         console.log("Successfully updated livestream")
+                        sendSseEvent("livestreamUpdate", adminSseClients, { ...newLivestreamData })
                         sendResponse.success(res, "Success", 200)
                     }
                 ).catch((error) => {
@@ -127,7 +154,9 @@ adminRouter.post('/livestream/update',
  * This route is used to update the name of the person being trolled as well as 
  * whether or not the person being trolled should be gaslit
  */
+
 adminRouter.post('/nameskit/update',
+    passport.authenticate('jwt', { session: false }),
     updateNameSkitSchema,
     (req: Request, res: Response) => {
         const result = validationResult(req);
@@ -148,6 +177,7 @@ adminRouter.post('/nameskit/update',
 
             nameSkitDocument.update({ ...newNameskitData }).then(
                 () => {
+                    sendSseEvent("nameskitUpdate", adminSseClients, { ...newNameskitData })
                     console.log("Successfully updated nameskit")
                     sendResponse.success(res, "Success", 200)
                 }
@@ -159,6 +189,7 @@ adminRouter.post('/nameskit/update',
     })
 
 adminRouter.post('/omegletags/update',
+    passport.authenticate('jwt', { session: false }),
     updateOmegleStreamSchema,
     async (req: Request, res: Response) => {
 
@@ -195,6 +226,7 @@ adminRouter.post('/omegletags/update',
 
                 omegleTagMasterDocument.update({ currentOmegleTags: mergedOmegleTags }).then(
                     (response) => {
+                        sendSseEvent("omegletagsUpdate", adminSseClients, { currentOmegleTags: mergedOmegleTags })
                         console.log("Successfully updated omegle tags")
                         sendResponse.success(res, "Updated Omegle Tags", 200, mergedOmegleTags)
                     }
@@ -207,17 +239,20 @@ adminRouter.post('/omegletags/update',
 
     })
 
-adminRouter.get('/omegletags/reset', (req: Request, res: Response) => {
-    const omegleTagsCollection = firebaseDB.collection(process.env.DB_OMEGLE_COLLECTION as string)
-    const omegleTagMasterDocument = omegleTagsCollection.doc(process.env.DB_OMEGLE_DOCUMENT_ID as string)
+adminRouter.get('/omegletags/reset',
+    passport.authenticate('jwt', { session: false }),
+    (req: Request, res: Response) => {
+        const omegleTagsCollection = firebaseDB.collection(process.env.DB_OMEGLE_COLLECTION as string)
+        const omegleTagMasterDocument = omegleTagsCollection.doc(process.env.DB_OMEGLE_DOCUMENT_ID as string)
 
-    omegleTagMasterDocument.update({ currentOmegleTags: [] }).then(
-        (response) => {
-            console.log("Successfully reset omegle tags")
-            sendResponse.success(res, "Reset Omegle Tags", 200)
-        }
-    ).catch((error) => {
-        console.error("Failed to reset omegle tags", error)
-        sendResponse.internalError(res, "Failed to reset omegle tags", 500)
+        omegleTagMasterDocument.update({ currentOmegleTags: [] }).then(
+            (response) => {
+                sendSseEvent("omegletagsUpdate", adminSseClients, { currentOmegleTags: [] })
+                console.log("Successfully reset omegle tags")
+                sendResponse.success(res, "Reset Omegle Tags", 200)
+            }
+        ).catch((error) => {
+            console.error("Failed to reset omegle tags", error)
+            sendResponse.internalError(res, "Failed to reset omegle tags", 500)
+        })
     })
-})
