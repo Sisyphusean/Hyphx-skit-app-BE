@@ -4,7 +4,7 @@ export const devCorsSetup = {
     optionsSuccessStatus: 200
 }
 
-const whitelist = ['https://hyphxskittest.vercel.app', 'https://hyphxskittest-peyioyelo-gmailcom.vercel.app', 'https://www.hyphonix.online/']
+const whitelist = ['https://hyphxskittest.vercel.app', 'https://hyphxskittest-peyioyelo-gmailcom.vercel.app', 'https://www.hyphonix.online']
 
 export const prodAndStagingCorsSetup = {
     origin: (origin: string, callback: Function) => {
